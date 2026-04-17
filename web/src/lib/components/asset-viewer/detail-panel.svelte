@@ -76,7 +76,6 @@
     })(),
   );
   let previousId: string | undefined = $state();
-  let previousRoute = $derived(currentAlbum?.id ? Route.viewAlbum(currentAlbum) : Route.photos());
 
   const refreshAlbums = async () => {
     if (authManager.isSharedLink) {
@@ -226,7 +225,7 @@
             {@const isHighlighted = people[index].faces.some((f) => $boundingBoxesArray.some((b) => b.id === f.id))}
             <a
               class="group w-22 outline-none"
-              href={Route.viewPerson(person, { previousRoute })}
+              href={Route.viewPerson(person)}
               onfocus={() => ($boundingBoxesArray = people[index].faces)}
               onblur={() => ($boundingBoxesArray = [])}
               onmouseover={() => ($boundingBoxesArray = people[index].faces)}
