@@ -22,6 +22,7 @@ export type TimelineAsset = {
   ratio: number;
   thumbhash: string | null;
   localDateTime: TimelineDateTime;
+  localOffsetHours: number | null;
   fileCreatedAt: TimelineDateTime;
   visibility: AssetVisibility;
   isFavorite: boolean;
