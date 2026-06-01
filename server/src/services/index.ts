@@ -46,6 +46,7 @@ import { VersionService } from 'src/services/version.service';
 import { ViewService } from 'src/services/view.service';
 import { WorkflowExecutionService } from 'src/services/workflow-execution.service';
 import { WorkflowService } from 'src/services/workflow.service';
+import { YuccaService } from 'src/services/yucca.service';
 
 export const services = [
   ApiKeyService,
@@ -96,4 +97,5 @@ export const services = [
   ViewService,
   WorkflowExecutionService,
   WorkflowService,
+  YuccaService,
 ];

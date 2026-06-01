@@ -13,7 +13,7 @@ part of openapi.api;
 class ApiClient {
   ApiClient({this.basePath = '/api', this.authentication,});
 
-  String basePath;
+  final String basePath;
   final Authentication? authentication;
 
   var _client = Client();
@@ -44,9 +44,8 @@ class ApiClient {
     Object? body,
     Map<String, String> headerParams,
     Map<String, String> formParams,
-    String? contentType, {
-    Future<void>? abortTrigger,
-  }) async {
+    String? contentType,
+  ) async {
     await authentication?.applyToParams(queryParams, headerParams);
 
     headerParams.addAll(_defaultHeaderMap);
@@ -64,7 +63,7 @@ class ApiClient {
         body is MultipartFile && (contentType == null ||
         !contentType.toLowerCase().startsWith('multipart/form-data'))
       ) {
-        final request = AbortableStreamedRequest(method, uri, abortTrigger: abortTrigger);
+        final request = StreamedRequest(method, uri);
         request.headers.addAll(headerParams);
         request.contentLength = body.length;
         body.finalize().listen(
@@ -79,7 +78,7 @@ class ApiClient {
       }
 
       if (body is MultipartRequest) {
-        final request = AbortableMultipartRequest(method, uri, abortTrigger: abortTrigger);
+        final request = MultipartRequest(method, uri);
         request.fields.addAll(body.fields);
         request.files.addAll(body.files);
         request.headers.addAll(body.headers);
@@ -93,19 +92,14 @@ class ApiClient {
         : await serializeAsync(body);
       final nullableHeaderParams = headerParams.isEmpty ? null : headerParams;
 
-      final request = AbortableRequest(method, uri, abortTrigger: abortTrigger);
-      if (nullableHeaderParams != null) {
-        request.headers.addAll(nullableHeaderParams);
+      switch(method) {
+        case 'POST': return await _client.post(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'PUT': return await _client.put(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'DELETE': return await _client.delete(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'PATCH': return await _client.patch(uri, headers: nullableHeaderParams, body: msgBody,);
+        case 'HEAD': return await _client.head(uri, headers: nullableHeaderParams,);
+        case 'GET': return await _client.get(uri, headers: nullableHeaderParams,);
       }
-      if (msgBody is String) {
-        request.body = msgBody;
-      } else if (msgBody is List<int>) {
-        request.bodyBytes = msgBody;
-      } else if (msgBody is Map<String, String>) {
-        request.bodyFields = msgBody;
-      }
-      final response = await _client.send(request);
-      return Response.fromStream(response);
     } on SocketException catch (error, trace) {
       throw ApiException.withInner(
         HttpStatus.badRequest,
@@ -142,6 +136,11 @@ class ApiClient {
         trace,
       );
     }
+
+    throw ApiException(
+      HttpStatus.badRequest,
+      'Invalid HTTP operation: $method $path',
+    );
   }
 
   Future<dynamic> deserializeAsync(String value, String targetType, {bool growable = false,}) =>
@@ -183,6 +182,8 @@ class ApiClient {
           return valueString == 'true' || valueString == '1';
         case 'DateTime':
           return value is DateTime ? value : DateTime.tryParse(value);
+        case 'ActiveScheduleItemDto':
+          return ActiveScheduleItemDto.fromJson(value);
         case 'ActivityCreateDto':
           return ActivityCreateDto.fromJson(value);
         case 'ActivityResponseDto':
@@ -315,6 +316,14 @@ class ApiClient {
           return AuthStatusResponseDto.fromJson(value);
         case 'AvatarUpdate':
           return AvatarUpdate.fromJson(value);
+        case 'BackendDto':
+          return BackendDto.fromJson(value);
+        case 'BackendResponseDto':
+          return BackendResponseDto.fromJson(value);
+        case 'BackendType':
+          return BackendTypeTypeTransformer().decode(value);
+        case 'BackendsResponseDto':
+          return BackendsResponseDto.fromJson(value);
         case 'BulkIdErrorReason':
           return BulkIdErrorReasonTypeTransformer().decode(value);
         case 'BulkIdResponseDto':
@@ -333,16 +342,24 @@ class ApiClient {
           return ChangePasswordDto.fromJson(value);
         case 'Colorspace':
           return ColorspaceTypeTransformer().decode(value);
+        case 'ConfigureImmichIntegrationRequestDto':
+          return ConfigureImmichIntegrationRequestDto.fromJson(value);
+        case 'ConfigureImmichIntegrationRequestDtoLibraries':
+          return ConfigureImmichIntegrationRequestDtoLibraries.fromJson(value);
         case 'ContributorCountResponseDto':
           return ContributorCountResponseDto.fromJson(value);
         case 'CreateAlbumDto':
           return CreateAlbumDto.fromJson(value);
         case 'CreateLibraryDto':
           return CreateLibraryDto.fromJson(value);
+        case 'CreateLocalBackendRequestDto':
+          return CreateLocalBackendRequestDto.fromJson(value);
         case 'CreateProfileImageResponseDto':
           return CreateProfileImageResponseDto.fromJson(value);
         case 'CropParameters':
           return CropParameters.fromJson(value);
+        case 'CurrentRecoveryKeyResponse':
+          return CurrentRecoveryKeyResponse.fromJson(value);
         case 'DatabaseBackupConfig':
           return DatabaseBackupConfig.fromJson(value);
         case 'DatabaseBackupDeleteDto':
@@ -351,6 +368,8 @@ class ApiClient {
           return DatabaseBackupDto.fromJson(value);
         case 'DatabaseBackupListResponseDto':
           return DatabaseBackupListResponseDto.fromJson(value);
+        case 'DeviceFlowResponseDto':
+          return DeviceFlowResponseDto.fromJson(value);
         case 'DownloadArchiveDto':
           return DownloadArchiveDto.fromJson(value);
         case 'DownloadArchiveInfo':
@@ -381,12 +400,30 @@ class ApiClient {
           return FaceDto.fromJson(value);
         case 'FacialRecognitionConfig':
           return FacialRecognitionConfig.fromJson(value);
+        case 'FilesystemListingItemDto':
+          return FilesystemListingItemDto.fromJson(value);
+        case 'FilesystemListingResponseDto':
+          return FilesystemListingResponseDto.fromJson(value);
         case 'FoldersResponse':
           return FoldersResponse.fromJson(value);
         case 'FoldersUpdate':
           return FoldersUpdate.fromJson(value);
         case 'ImageFormat':
           return ImageFormatTypeTransformer().decode(value);
+        case 'ImmichIntegrationConfigurationDto':
+          return ImmichIntegrationConfigurationDto.fromJson(value);
+        case 'ImmichIntegrationDto':
+          return ImmichIntegrationDto.fromJson(value);
+        case 'ImmichLibraryDto':
+          return ImmichLibraryDto.fromJson(value);
+        case 'ImmichStateDto':
+          return ImmichStateDto.fromJson(value);
+        case 'ImportRecoveryKeyRequest':
+          return ImportRecoveryKeyRequest.fromJson(value);
+        case 'InspectedLocalRepositoryDto':
+          return InspectedLocalRepositoryDto.fromJson(value);
+        case 'IntegrationsResponseDto':
+          return IntegrationsResponseDto.fromJson(value);
         case 'JobCreateDto':
           return JobCreateDto.fromJson(value);
         case 'JobName':
@@ -399,8 +436,14 @@ class ApiClient {
           return LibraryStatsResponseDto.fromJson(value);
         case 'LicenseKeyDto':
           return LicenseKeyDto.fromJson(value);
+        case 'ListSnapshotsResponseDto':
+          return ListSnapshotsResponseDto.fromJson(value);
+        case 'LocalRepositoryDto':
+          return LocalRepositoryDto.fromJson(value);
         case 'LogLevel':
           return LogLevelTypeTransformer().decode(value);
+        case 'LogResponseDto':
+          return LogResponseDto.fromJson(value);
         case 'LoginCredentialDto':
           return LoginCredentialDto.fromJson(value);
         case 'LoginResponseDto':
@@ -481,6 +524,8 @@ class ApiClient {
           return OnboardingDto.fromJson(value);
         case 'OnboardingResponseDto':
           return OnboardingResponseDto.fromJson(value);
+        case 'OnboardingStatusResponseDto':
+          return OnboardingStatusResponseDto.fromJson(value);
         case 'PartnerCreateDto':
           return PartnerCreateDto.fromJson(value);
         case 'PartnerDirection':
@@ -521,10 +566,6 @@ class ApiClient {
           return PluginMethodResponseDto.fromJson(value);
         case 'PluginResponseDto':
           return PluginResponseDto.fromJson(value);
-        case 'PluginTemplateResponseDto':
-          return PluginTemplateResponseDto.fromJson(value);
-        case 'PluginTemplateStepResponseDto':
-          return PluginTemplateStepResponseDto.fromJson(value);
         case 'PurchaseResponse':
           return PurchaseResponse.fromJson(value);
         case 'PurchaseUpdate':
@@ -563,10 +604,64 @@ class ApiClient {
           return ReactionLevelTypeTransformer().decode(value);
         case 'ReactionType':
           return ReactionTypeTypeTransformer().decode(value);
+        case 'RepositoryBackendDto':
+          return RepositoryBackendDto.fromJson(value);
+        case 'RepositoryBackendsDto':
+          return RepositoryBackendsDto.fromJson(value);
+        case 'RepositoryCheckImportResponseDto':
+          return RepositoryCheckImportResponseDto.fromJson(value);
+        case 'RepositoryConfigurationDto':
+          return RepositoryConfigurationDto.fromJson(value);
+        case 'RepositoryCreateRequestDto':
+          return RepositoryCreateRequestDto.fromJson(value);
+        case 'RepositoryCreateResponseDto':
+          return RepositoryCreateResponseDto.fromJson(value);
+        case 'RepositoryInspectResponseDto':
+          return RepositoryInspectResponseDto.fromJson(value);
+        case 'RepositoryListResponseDto':
+          return RepositoryListResponseDto.fromJson(value);
+        case 'RepositoryMetricsDto':
+          return RepositoryMetricsDto.fromJson(value);
+        case 'RepositorySnapshotRestoreFromPointRequestDto':
+          return RepositorySnapshotRestoreFromPointRequestDto.fromJson(value);
+        case 'RepositorySnapshotRestoreRequestDto':
+          return RepositorySnapshotRestoreRequestDto.fromJson(value);
+        case 'RepositoryUpdateRequestDto':
+          return RepositoryUpdateRequestDto.fromJson(value);
+        case 'RepositoryUpdateResponseDto':
+          return RepositoryUpdateResponseDto.fromJson(value);
+        case 'RetentionPolicyDto':
+          return RetentionPolicyDto.fromJson(value);
         case 'ReverseGeocodingStateResponseDto':
           return ReverseGeocodingStateResponseDto.fromJson(value);
         case 'RotateParameters':
           return RotateParameters.fromJson(value);
+        case 'RunDto':
+          return RunDto.fromJson(value);
+        case 'RunHistoryResponseDto':
+          return RunHistoryResponseDto.fromJson(value);
+        case 'RunResponseDto':
+          return RunResponseDto.fromJson(value);
+        case 'RunStatus':
+          return RunStatusTypeTransformer().decode(value);
+        case 'RunType':
+          return RunTypeTypeTransformer().decode(value);
+        case 'RunningTaskDto':
+          return RunningTaskDto.fromJson(value);
+        case 'RunningTaskListResponse':
+          return RunningTaskListResponse.fromJson(value);
+        case 'ScheduleCreateRequestDto':
+          return ScheduleCreateRequestDto.fromJson(value);
+        case 'ScheduleCreateResponseDto':
+          return ScheduleCreateResponseDto.fromJson(value);
+        case 'ScheduleDto':
+          return ScheduleDto.fromJson(value);
+        case 'ScheduleListResponseDto':
+          return ScheduleListResponseDto.fromJson(value);
+        case 'ScheduleUpdateRequestDto':
+          return ScheduleUpdateRequestDto.fromJson(value);
+        case 'ScheduleUpdateResponseDto':
+          return ScheduleUpdateResponseDto.fromJson(value);
         case 'SearchAlbumResponseDto':
           return SearchAlbumResponseDto.fromJson(value);
         case 'SearchAssetResponseDto':
@@ -635,6 +730,10 @@ class ApiClient {
           return SignUpDto.fromJson(value);
         case 'SmartSearchDto':
           return SmartSearchDto.fromJson(value);
+        case 'SnapshotDto':
+          return SnapshotDto.fromJson(value);
+        case 'SnapshotSummaryDto':
+          return SnapshotSummaryDto.fromJson(value);
         case 'SourceType':
           return SourceTypeTypeTransformer().decode(value);
         case 'StackCreateDto':
@@ -803,6 +902,10 @@ class ApiClient {
           return TagsResponse.fromJson(value);
         case 'TagsUpdate':
           return TagsUpdate.fromJson(value);
+        case 'TaskStatus':
+          return TaskStatusTypeTransformer().decode(value);
+        case 'TaskType':
+          return TaskTypeTypeTransformer().decode(value);
         case 'TemplateDto':
           return TemplateDto.fromJson(value);
         case 'TemplateResponseDto':

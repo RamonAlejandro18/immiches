@@ -1,3 +1,4 @@
+import { OrchestrationApiModule } from '@futo-org/backups-orchestrator-api/dist';
 import { BullModule } from '@nestjs/bullmq';
 import { Inject, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
@@ -20,6 +21,7 @@ import { ErrorInterceptor } from 'src/middleware/error.interceptor';
 import { FileUploadInterceptor } from 'src/middleware/file-upload.interceptor';
 import { GlobalExceptionFilter } from 'src/middleware/global-exception.filter';
 import { LoggingInterceptor } from 'src/middleware/logging.interceptor';
+import { YuccaAdminGuard } from 'src/middleware/yucca-admin.guard';
 import { repositories } from 'src/repositories';
 import { AppRepository } from 'src/repositories/app.repository';
 import { ConfigRepository } from 'src/repositories/config.repository';
@@ -50,10 +52,18 @@ const commonMiddleware = [
   { provide: APP_INTERCEPTOR, useClass: ErrorInterceptor },
 ];
 
-const apiMiddleware = [FileUploadInterceptor, ...commonMiddleware, { provide: APP_GUARD, useClass: AuthGuard }];
+const apiMiddleware = [
+  FileUploadInterceptor,
+  ...commonMiddleware,
+  { provide: APP_GUARD, useClass: YuccaAdminGuard },
+  { provide: APP_GUARD, useClass: AuthGuard },
+];
 
 const configRepository = new ConfigRepository();
 const { bull, cls, database, otel } = configRepository.getEnv();
+
+// TODO[YUCCA]: use IMMICH_ENV
+const isYuccaDevelopmentMode = true;
 
 const commonImports = [
   ClsModule.forRoot(cls.config),
@@ -102,14 +112,35 @@ export class BaseModule implements OnModuleInit, OnModuleDestroy {
 }
 
 @Module({
-  imports: [...bullImports, ...commonImports, ScheduleModule.forRoot()],
+  imports: [
+    ...bullImports,
+    ...commonImports,
+    ScheduleModule.forRoot(),
+    OrchestrationApiModule.forRoot({
+      yuccaProductionApi: 'https://staging.fubar.computer', // TODO[YUCCA]: load from futo.cloud -> .well-known file
+      statePath: '/data/yucca', // TODO[YUCCA]: point to {immich_data_location}/yucca
+      requireWsAuth: true,
+      requireLock: true,
+      developmentMode: isYuccaDevelopmentMode,
+    }),
+  ],
   controllers: [...controllers],
   providers: [...common, ...apiMiddleware, { provide: IWorker, useValue: ImmichWorker.Api }],
 })
 export class ApiModule extends BaseModule {}
 
 @Module({
-  imports: [...commonImports],
+  imports: [
+    ...commonImports,
+    OrchestrationApiModule.forRoot({
+      yuccaProductionApi: 'https://staging.fubar.computer', // TODO[YUCCA]: load from futo.cloud -> .well-known file
+      statePath: '/data/yucca', // TODO[YUCCA]: point to {immich_data_location}/yucca
+      externalBaseUrl: 'https://my.immich.app',
+      requireWsAuth: true,
+      requireLock: true,
+      developmentMode: isYuccaDevelopmentMode,
+    }),
+  ],
   controllers: [MaintenanceWorkerController],
   providers: [
     ConfigRepository,
