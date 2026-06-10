@@ -10,10 +10,12 @@ import 'package:immich_mobile/domain/models/config/network_config.dart';
 import 'package:immich_mobile/domain/models/config/slideshow_config.dart';
 import 'package:immich_mobile/domain/models/config/theme_config.dart';
 import 'package:immich_mobile/domain/models/config/timeline_config.dart';
+import 'package:immich_mobile/domain/models/config/trash_sync_config.dart';
 import 'package:immich_mobile/domain/models/config/viewer_config.dart';
 import 'package:immich_mobile/domain/models/log.model.dart';
 import 'package:immich_mobile/domain/models/settings_key.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
+import 'package:immich_mobile/domain/models/trash_sync.model.dart';
 import 'package:immich_mobile/providers/album/album_sort_by_options.provider.dart';
 
 const defaultConfig = AppConfig();
@@ -30,6 +32,7 @@ class AppConfig {
   final AlbumConfig album;
   final BackupConfig backup;
   final NetworkConfig network;
+  final TrashSyncConfig trashSync;
 
   const AppConfig({
     this.logLevel = .info,
@@ -43,6 +46,7 @@ class AppConfig {
     this.album = const .new(),
     this.backup = const .new(),
     this.network = const .new(),
+    this.trashSync = const .new(),
   });
 
   AppConfig copyWith({
@@ -57,6 +61,7 @@ class AppConfig {
     AlbumConfig? album,
     BackupConfig? backup,
     NetworkConfig? network,
+    TrashSyncConfig? trashSync,
   }) => .new(
     logLevel: logLevel ?? this.logLevel,
     theme: theme ?? this.theme,
@@ -69,6 +74,7 @@ class AppConfig {
     album: album ?? this.album,
     backup: backup ?? this.backup,
     network: network ?? this.network,
+    trashSync: trashSync ?? this.trashSync,
   );
 
   @override
@@ -85,15 +91,16 @@ class AppConfig {
           other.slideshow == slideshow &&
           other.album == album &&
           other.backup == backup &&
-          other.network == network);
+          other.network == network &&
+          other.trashSync == trashSync);
 
   @override
   int get hashCode =>
-      Object.hash(logLevel, theme, cleanup, map, timeline, image, viewer, slideshow, album, backup, network);
+      Object.hash(logLevel, theme, cleanup, map, timeline, image, viewer, slideshow, album, backup, network, trashSync);
 
   @override
   String toString() =>
-      'AppConfig(logLevel: $logLevel, theme: $theme, cleanup: $cleanup, map: $map, timeline: $timeline, image: $image, viewer: $viewer, slideshow: $slideshow, album: $album, backup: $backup, network: $network)';
+      'AppConfig(logLevel: $logLevel, theme: $theme, cleanup: $cleanup, map: $map, timeline: $timeline, image: $image, viewer: $viewer, slideshow: $slideshow, album: $album, backup: $backup, network: $network, trashSync: $trashSync)';
 
   T read<T extends Object>(SettingsKey<T> key) =>
       (switch (key) {
@@ -140,6 +147,7 @@ class AppConfig {
             .slideshowDuration => slideshow.duration,
             .slideshowLook => slideshow.look,
             .slideshowDirection => slideshow.direction,
+            .trashSyncMode => trashSync.mode,
           })
           as T;
 
@@ -191,6 +199,7 @@ class AppConfig {
       .slideshowDuration => copyWith(slideshow: slideshow.copyWith(duration: value as int)),
       .slideshowLook => copyWith(slideshow: slideshow.copyWith(look: value as SlideshowLook)),
       .slideshowDirection => copyWith(slideshow: slideshow.copyWith(direction: value as SlideshowDirection)),
+      .trashSyncMode => copyWith(trashSync: trashSync.copyWith(mode: value as TrashSyncMode)),
     };
   }
 }
