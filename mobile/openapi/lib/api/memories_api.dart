@@ -265,6 +265,9 @@ class MemoriesApi {
   ///
   /// * [MemorySearchOrder] order:
   ///
+  /// * [int] page:
+  ///   Page number
+  ///
   /// * [int] size:
   ///   Number of memories to return
   ///
@@ -291,6 +294,9 @@ class MemoriesApi {
     }
     if (order != null) {
       queryParams.addAll(_queryParams('', 'order', order));
+    }
+    if (page != null) {
+      queryParams.addAll(_queryParams('', 'page', page));
     }
     if (size != null) {
       queryParams.addAll(_queryParams('', 'size', size));
@@ -330,6 +336,9 @@ class MemoriesApi {
   ///   Include trashed memories
   ///
   /// * [MemorySearchOrder] order:
+  ///
+  /// * [int] page:
+  ///   Page number
   ///
   /// * [int] size:
   ///   Number of memories to return
@@ -434,6 +443,9 @@ class MemoriesApi {
   ///
   /// * [MemorySearchOrder] order:
   ///
+  /// * [int] page:
+  ///   Page number
+  ///
   /// * [int] size:
   ///   Number of memories to return
   ///
@@ -460,6 +472,9 @@ class MemoriesApi {
     }
     if (order != null) {
       queryParams.addAll(_queryParams('', 'order', order));
+    }
+    if (page != null) {
+      queryParams.addAll(_queryParams('', 'page', page));
     }
     if (size != null) {
       queryParams.addAll(_queryParams('', 'size', size));
@@ -500,6 +515,9 @@ class MemoriesApi {
   ///
   /// * [MemorySearchOrder] order:
   ///
+  /// * [int] page:
+  ///   Page number
+  ///
   /// * [int] size:
   ///   Number of memories to return
   ///
@@ -513,11 +531,8 @@ class MemoriesApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      final responseBody = await _decodeBodyBytes(response);
-      return (await apiClient.deserializeAsync(responseBody, 'List<MemoryResponseDto>') as List)
-        .cast<MemoryResponseDto>()
-        .toList(growable: false);
-
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'MemorySearchResponseDto',) as MemorySearchResponseDto;
+    
     }
     return null;
   }
