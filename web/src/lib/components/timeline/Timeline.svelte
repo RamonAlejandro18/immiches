@@ -17,7 +17,12 @@
   import { isIntersecting } from '$lib/managers/timeline-manager/internal/intersection-support.svelte';
   import type { TimelineMonth } from '$lib/managers/timeline-manager/timeline-month.svelte';
   import { TimelineManager } from '$lib/managers/timeline-manager/timeline-manager.svelte';
-  import type { TimelineAsset, TimelineManagerOptions, ViewportTopMonth } from '$lib/managers/timeline-manager/types';
+  import type {
+    TimelineAsset,
+    TimelineManagerLayoutOptions,
+    TimelineManagerOptions,
+    ViewportTopMonth,
+  } from '$lib/managers/timeline-manager/types';
   import { assetsSnapshot } from '$lib/managers/timeline-manager/utils.svelte';
   import { mediaQueryManager } from '$lib/stores/media-query-manager.svelte';
   import { isAssetViewerRoute, navigate } from '$lib/utils/navigation';
@@ -36,6 +41,7 @@
     enableRouting: boolean;
     timelineManager?: TimelineManager;
     options?: TimelineManagerOptions;
+    layoutOptions?: Partial<TimelineManagerLayoutOptions>;
     assetInteraction: AssetMultiSelectManager;
     removeAction?: AssetAction.UNARCHIVE | AssetAction.ARCHIVE | AssetAction.SET_VISIBILITY_TIMELINE | null;
     withStacked?: boolean;
@@ -68,6 +74,7 @@
     enableRouting,
     timelineManager = $bindable(),
     options,
+    layoutOptions: layoutOptionsOverride = {},
     assetInteraction,
     removeAction = null,
     withStacked = false,
@@ -114,7 +121,7 @@
           rowHeight: 235,
           headerHeight: 48,
         };
-    timelineManager.setLayoutOptions(layoutOptions);
+    timelineManager.setLayoutOptions({ ...layoutOptions, ...layoutOptionsOverride });
   });
 
   $effect(() => {
