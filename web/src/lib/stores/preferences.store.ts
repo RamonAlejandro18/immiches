@@ -26,6 +26,7 @@ export interface MapSettings {
   onlyFavorites: boolean;
   withPartners: boolean;
   withSharedAlbums: boolean;
+  showAssetPanel: boolean;
   relativeDate: string;
   dateAfter?: DateTime<true>;
   dateBefore?: DateTime<true>;
@@ -37,6 +38,7 @@ const defaultMapSettings = {
   onlyFavorites: false,
   withPartners: false,
   withSharedAlbums: false,
+  showAssetPanel: false,
   relativeDate: '',
 };
 
